@@ -23,6 +23,11 @@ using namespace stackchan::avatar;
 
 #define TAG "StackChanAvatarDisplay"
 
+// Font Awesome glyphs rendered by BUILTIN_ICON_FONT.
+// U+F1EB: WiFi, U+F0C1: Link/chain.
+#define STACKCHAN_ICON_WIFI "\xEF\x87\xAB"
+#define STACKCHAN_ICON_LINK "\xEF\x83\x81"
+
 LV_FONT_DECLARE(BUILTIN_TEXT_FONT);
 LV_FONT_DECLARE(BUILTIN_ICON_FONT);
 LV_FONT_DECLARE(font_awesome_30_4);
@@ -270,6 +275,33 @@ void StackChanAvatarDisplay::SetupUI()
     lv_obj_align(preview_image_, LV_ALIGN_CENTER, 0, 0);
     lv_obj_add_flag(preview_image_, LV_OBJ_FLAG_HIDDEN);
 
+    privacy_camera_dot_ = lv_obj_create(lv_screen_active());
+    lv_obj_remove_style_all(privacy_camera_dot_);
+    lv_obj_set_size(privacy_camera_dot_, 12, 12);
+    lv_obj_set_style_radius(privacy_camera_dot_, LV_RADIUS_CIRCLE, 0);
+    lv_obj_set_style_bg_opa(privacy_camera_dot_, LV_OPA_COVER, 0);
+    lv_obj_set_style_bg_color(privacy_camera_dot_, lv_color_hex(0x30D158), 0);
+    lv_obj_align(privacy_camera_dot_, LV_ALIGN_TOP_MID, -8, 4);
+    lv_obj_add_flag(privacy_camera_dot_, LV_OBJ_FLAG_HIDDEN);
+
+    privacy_mic_dot_ = lv_obj_create(lv_screen_active());
+    lv_obj_remove_style_all(privacy_mic_dot_);
+    lv_obj_set_size(privacy_mic_dot_, 12, 12);
+    lv_obj_set_style_radius(privacy_mic_dot_, LV_RADIUS_CIRCLE, 0);
+    lv_obj_set_style_bg_opa(privacy_mic_dot_, LV_OPA_COVER, 0);
+    lv_obj_set_style_bg_color(privacy_mic_dot_, lv_color_hex(0xFF9F0A), 0);
+    lv_obj_align(privacy_mic_dot_, LV_ALIGN_TOP_MID, 8, 4);
+    lv_obj_add_flag(privacy_mic_dot_, LV_OBJ_FLAG_HIDDEN);
+
+    wifi_connection_label_ = lv_label_create(lv_screen_active());
+    lv_obj_set_style_text_font(wifi_connection_label_, &BUILTIN_ICON_FONT, 0);
+    lv_obj_set_style_text_color(wifi_connection_label_, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_set_style_text_opa(wifi_connection_label_, LV_OPA_COVER, 0);
+    lv_label_set_text(wifi_connection_label_, "");
+    lv_obj_align(wifi_connection_label_, LV_ALIGN_TOP_RIGHT, -6, 4);
+    lv_obj_add_flag(wifi_connection_label_, LV_OBJ_FLAG_HIDDEN);
+    UpdateWifiConnectionIndicatorLocked();
+
     // GetHAL().startStackChanAutoUpdate(24);
 
     ESP_LOGI(TAG, "Avatar created and started");
@@ -383,6 +415,74 @@ void StackChanAvatarDisplay::ClearChatMessages()
     ESP_LOGI(TAG, "Chat messages cleared");
 }
 
+void StackChanAvatarDisplay::UpdatePrivacyIndicatorsLocked()
+{
+    if (privacy_camera_dot_) {
+        if (camera_indicator_on_) {
+            lv_obj_remove_flag(privacy_camera_dot_, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_move_foreground(privacy_camera_dot_);
+        } else {
+            lv_obj_add_flag(privacy_camera_dot_, LV_OBJ_FLAG_HIDDEN);
+        }
+    }
+    if (privacy_mic_dot_) {
+        if (microphone_indicator_on_) {
+            lv_obj_remove_flag(privacy_mic_dot_, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_move_foreground(privacy_mic_dot_);
+        } else {
+            lv_obj_add_flag(privacy_mic_dot_, LV_OBJ_FLAG_HIDDEN);
+        }
+    }
+}
+
+void StackChanAvatarDisplay::UpdateWifiConnectionIndicatorLocked()
+{
+    if (wifi_connection_label_ == nullptr) {
+        return;
+    }
+
+    const char* next_icon = nullptr;
+    switch (GetHAL().getWifiConnectionType()) {
+        case WifiConnectionType::Home:
+            next_icon = STACKCHAN_ICON_WIFI;
+            break;
+        case WifiConnectionType::Tethering:
+            next_icon = STACKCHAN_ICON_LINK;
+            break;
+        default:
+            next_icon = nullptr;
+            break;
+    }
+
+    if (next_icon == nullptr) {
+        wifi_connection_icon_ = nullptr;
+        lv_label_set_text(wifi_connection_label_, "");
+        lv_obj_add_flag(wifi_connection_label_, LV_OBJ_FLAG_HIDDEN);
+        return;
+    }
+
+    if (wifi_connection_icon_ != next_icon) {
+        wifi_connection_icon_ = next_icon;
+        lv_label_set_text(wifi_connection_label_, wifi_connection_icon_);
+    }
+    lv_obj_remove_flag(wifi_connection_label_, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_move_foreground(wifi_connection_label_);
+}
+
+void StackChanAvatarDisplay::SetMicrophoneIndicator(bool on)
+{
+    DisplayLockGuard lock(this);
+    microphone_indicator_on_ = on;
+    UpdatePrivacyIndicatorsLocked();
+}
+
+void StackChanAvatarDisplay::SetCameraIndicator(bool on)
+{
+    DisplayLockGuard lock(this);
+    camera_indicator_on_ = on;
+    UpdatePrivacyIndicatorsLocked();
+}
+
 void StackChanAvatarDisplay::SetPreviewImage(std::unique_ptr<LvglImage> image)
 {
     DisplayLockGuard lock(this);
@@ -394,6 +494,8 @@ void StackChanAvatarDisplay::SetPreviewImage(std::unique_ptr<LvglImage> image)
         esp_timer_stop(preview_timer_);
         lv_obj_add_flag(preview_image_, LV_OBJ_FLAG_HIDDEN);
         preview_image_cached_.reset();
+        camera_indicator_on_ = false;
+        UpdatePrivacyIndicatorsLocked();
         return;
     }
 
@@ -408,12 +510,16 @@ void StackChanAvatarDisplay::SetPreviewImage(std::unique_ptr<LvglImage> image)
 
     lv_obj_remove_flag(preview_image_, LV_OBJ_FLAG_HIDDEN);
     lv_obj_move_foreground(preview_image_);
+    camera_indicator_on_ = true;
+    UpdatePrivacyIndicatorsLocked();
     esp_timer_stop(preview_timer_);
     ESP_ERROR_CHECK(esp_timer_start_once(preview_timer_, 6000 * 1000));
 }
 
 void StackChanAvatarDisplay::UpdateStatusBar(bool update_all)
 {
+    DisplayLockGuard lock(this);
+    UpdateWifiConnectionIndicatorLocked();
 }
 
 void StackChanAvatarDisplay::SetTheme(Theme* theme)
@@ -491,6 +597,13 @@ void StackChanAvatarDisplay::SetStatus(const char* status)
         GetHAL().refreshRgb();
 
     } else if (strcmp(status, Lang::Strings::SPEAKING) == 0) {
+        // Do not start lip-sync on the logical TTS start event.
+        // For the Hermes/XiaoZhi streaming path, "tts.start" can arrive several
+        // seconds before the first decoded audio frame. Starting mouth animation
+        // here makes StackChan lip-sync long before sound is heard.
+        GetHAL().setRgbColor(0, 0, 0, 50);
+        GetHAL().refreshRgb();
+    } else if (strcmp(status, "__stackchan_lipsync_speaking") == 0) {
         if (speaking_modifier_id_ < 0) {
             speaking_modifier_id_ = stackchan.addModifier(std::make_unique<SpeakingModifier>(0, 180, false));
         }

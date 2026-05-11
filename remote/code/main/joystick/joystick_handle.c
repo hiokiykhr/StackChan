@@ -1,10 +1,13 @@
 #include "joystick_handle.h"
+#include "i2c_bus.h"
+#include <string.h>
+#include <stdlib.h>
 
 i2c_bus_device_handle_t i2c_device1;  // i2c device handle
 
 /**
  * @brief Initialize joystick via I2C interface
- * @note This is an internal static function that configures I2C_NUM_0 as master with SDA on GPIO0 and SCL on GPIO26
+ * @note This is an internal static function that configures I2C_NUM_0 as master with SDA/SCL pins provided by the board
  * @details
  *      1. Configures I2C master mode with 100kHz clock speed
  *      2. Creates I2C bus handle using I2C_NUM_0
@@ -13,13 +16,19 @@ i2c_bus_device_handle_t i2c_device1;  // i2c device handle
  *      5. Assigns the device handle to global variable [i2c_device1]
  * @warning This function assumes the joystick device is at I2C address 0x54
  */
-static void joystick_i2c_init()
+static void joystick_i2c_init(int sda_pin, int scl_pin)
 {
+    if (sda_pin < 0 || scl_pin < 0 || sda_pin > 48 || scl_pin > 48) {
+        ESP_LOGW("I2C Scanner", "Invalid I2C pins (%d, %d), falling back to legacy StickC+ pins", sda_pin, scl_pin);
+        sda_pin = 0;
+        scl_pin = 26;
+    }
+
     i2c_config_t conf;
     {
         conf.mode             = I2C_MODE_MASTER;
-        conf.sda_io_num       = 0;
-        conf.scl_io_num       = 26;
+        conf.sda_io_num       = sda_pin;
+        conf.scl_io_num       = scl_pin;
         conf.sda_pullup_en    = GPIO_PULLUP_ENABLE;
         conf.scl_pullup_en    = GPIO_PULLUP_ENABLE;
         conf.master.clk_speed = 100000;
@@ -71,7 +80,7 @@ static void joystick_read_xy(uint16_t *joyX, uint16_t *joyY)
  * @return joystick_data_t Structure containing initialized joystick parameters
  * @note This is the main initialization function exposed to users
  * @details
- *      1. Calls internal： device_joystick_init()
+ *      1. Calls internal joystick_i2c_init(sda_pin, scl_pin)
  *      2. Initializes all fields of 'joystick_data_t'
  *         - channel: 1 (default communication channel)
  *         - id: 0 (default target ID)
@@ -81,9 +90,9 @@ static void joystick_read_xy(uint16_t *joyX, uint16_t *joyY)
  *         - select_mode: CHANNEL_SELECT (default selection mode)
  * @return joystick_data_t
  */
-joystick_data_t joystick_init()
+joystick_data_t joystick_init(int sda_pin, int scl_pin)
 {
-    joystick_i2c_init();
+    joystick_i2c_init(sda_pin, scl_pin);
     joystick_data_t tmp;
     tmp.channel     = 1;
     tmp.id          = 0;

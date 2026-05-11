@@ -3,7 +3,7 @@
  *
  * SPDX-License-Identifier: MIT
  */
-#include "app_ai_agent.h"
+#include "app_hermes.h"
 #include <hal/hal.h>
 #include <mooncake.h>
 #include <mooncake_log.h>
@@ -15,43 +15,34 @@
 using namespace mooncake;
 using namespace smooth_ui_toolkit::lvgl_cpp;
 
-AppAiAgent::AppAiAgent()
+AppHermes::AppHermes()
 {
-    // Configure App name
-    setAppInfo().name = "XIAOZHI";
-    // Configure App icon
+    setAppInfo().name = "HERMES";
     static auto icon  = assets::get_image("icon_ai_agent.bin");
     setAppInfo().icon = (void*)&icon;
-    // Configure App theme color
-    static uint32_t theme_color = 0x33CC99;
+    static uint32_t theme_color = 0x6B4EFF;
     setAppInfo().userData       = (void*)&theme_color;
 }
 
-// Called when the App is installed
-void AppAiAgent::onCreate()
+void AppHermes::onCreate()
 {
     mclog::tagInfo(getAppInfo().name, "on create");
 }
 
-// Called when the App is opened
-// You can construct UI, initialize operations, etc. here
-void AppAiAgent::onOpen()
+void AppHermes::onOpen()
 {
     mclog::tagInfo(getAppInfo().name, "on open");
 
-    // Request to start Xiaozhi service
-    // All apps will be uninstall in next mooncake update
+    // Reuse the existing XiaoZhi start bridge because the server-side path
+    // already points to the Hermes-compatible OTA/WebSocket backend.
     GetHAL().requestXiaozhiStart();
 }
 
-// Called repeatedly while the App is running
-void AppAiAgent::onRunning()
+void AppHermes::onRunning()
 {
 }
 
-// Called when the App is closed
-// You can destroy UI, release resources, etc. here
-void AppAiAgent::onClose()
+void AppHermes::onClose()
 {
     mclog::tagInfo(getAppInfo().name, "on close");
 }

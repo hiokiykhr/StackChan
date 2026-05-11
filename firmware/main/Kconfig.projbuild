@@ -520,6 +520,24 @@ choice BOARD_TYPE
         depends on IDF_TARGET_ESP32S3
 endchoice
 
+menu "StackChan local network indicators"
+
+    config STACKCHAN_HOME_WIFI_SSID
+        string "Home WiFi SSID for StackChan indicator"
+        default ""
+        help
+            SSID treated as the home network. Leave empty to disable matching.
+            Keep real SSIDs in the local sdkconfig only; do not add them to sdkconfig.defaults.
+
+    config STACKCHAN_TETHER_WIFI_SSID
+        string "Tethering WiFi SSID for StackChan indicator"
+        default ""
+        help
+            SSID treated as the phone tethering network. Leave empty to disable matching.
+            Keep real SSIDs in the local sdkconfig only; do not add them to sdkconfig.defaults.
+
+endmenu
+
 choice
     depends on BOARD_TYPE_LILYGO_T_DISPLAY_P4
     prompt "Select the screen type"

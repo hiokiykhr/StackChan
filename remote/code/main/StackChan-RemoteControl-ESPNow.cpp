@@ -72,12 +72,13 @@ void app_main(void)
 
     M5.begin();
     M5.Power.begin();
-    M5.Power.Axp192.setLDO2(2800);  // set LDO2 to 2.8V for external devices
-    M5.Imu.init(&M5.In_I2C);        // init IMU with internal I2C port
+    M5.Power.setExtOutput(true);  // enable external port power for StickS3 / Grove devices
+    M5.Imu.init(&M5.In_I2C);      // init IMU with internal I2C port
     printf("IN_I2C port: %d\n", M5.In_I2C.getPort());
+    printf("EX_I2C port: %d (SDA=%d, SCL=%d)\n", M5.Ex_I2C.getPort(), M5.Ex_I2C.getSDA(), M5.Ex_I2C.getSCL());
     printf("M5 Display width: %ld, height: %ld\n", M5.Display.width(), M5.Display.height());
 
-    joystick_data = joystick_init();  // init joystick
+    joystick_data = joystick_init(M5.Ex_I2C.getSDA(), M5.Ex_I2C.getSCL());  // init joystick
 
     lvgl_port_init();  // init LVGL
     ui_init();         // init UI
@@ -93,7 +94,7 @@ void app_main(void)
         M5.update();
         // Handle button press
         handle_button_press();
-        joystick_data.bat = (M5.Power.Axp192.getBatteryLevel());  // updata battery level
+        joystick_data.bat = (M5.Power.getBatteryLevel());  // update battery level
 
         joystick_data.bat = (joystick_data.bat > 100) ? 100 : joystick_data.bat;
         joystick_data.bat = (joystick_data.bat < 0) ? 0 : joystick_data.bat;

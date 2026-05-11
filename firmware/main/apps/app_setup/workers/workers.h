@@ -13,6 +13,10 @@
 #include <memory>
 #include <string_view>
 
+namespace view {
+class LoadingPage;
+}
+
 namespace setup_workers {
 
 /**
@@ -147,6 +151,20 @@ private:
     void switch_state(State newState);
 };
 
+class BackendWebUiWorker : public WorkerBase {
+public:
+    BackendWebUiWorker();
+    ~BackendWebUiWorker();
+
+private:
+    std::unique_ptr<uitk::lvgl_cpp::Container> _panel;
+    std::unique_ptr<uitk::lvgl_cpp::Label> _title;
+    std::unique_ptr<uitk::lvgl_cpp::Label> _info;
+    std::unique_ptr<uitk::lvgl_cpp::Label> _url;
+    std::unique_ptr<uitk::lvgl_cpp::Qrcode> _qrcode;
+    std::unique_ptr<uitk::lvgl_cpp::Button> _btn_back;
+};
+
 /**
  * @brief
  *
@@ -224,6 +242,26 @@ public:
     SystemUpdateWorker();
     ~SystemUpdateWorker();
     void update() override;
+};
+
+/**
+ * @brief
+ *
+ */
+class TransitBalanceWorker : public WorkerBase {
+public:
+    TransitBalanceWorker();
+    ~TransitBalanceWorker();
+    void update() override;
+
+private:
+    class PageBalance;
+
+    std::unique_ptr<view::LoadingPage> _page_loading;
+    std::unique_ptr<PageBalance> _page_balance;
+    uint64_t _created_us   = 0;
+    uint64_t _next_probe_us = 0;
+    std::string _last_error;
 };
 
 /**

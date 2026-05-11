@@ -21,8 +21,17 @@ private:
     bool is_sleeping_                   = false;
 
     lv_obj_t* preview_image_                         = nullptr;
+    lv_obj_t* privacy_mic_dot_                       = nullptr;
+    lv_obj_t* privacy_camera_dot_                    = nullptr;
+    lv_obj_t* wifi_connection_label_                 = nullptr;
     esp_timer_handle_t preview_timer_                = nullptr;
     std::unique_ptr<LvglImage> preview_image_cached_ = nullptr;
+    bool microphone_indicator_on_                    = false;
+    bool camera_indicator_on_                        = false;
+    const char* wifi_connection_icon_                = nullptr;
+
+    void UpdatePrivacyIndicatorsLocked();
+    void UpdateWifiConnectionIndicatorLocked();
 
 protected:
     virtual bool Lock(int timeout_ms = 0) override;
@@ -40,6 +49,8 @@ public:
     virtual void SetChatMessage(const char* role, const char* content) override;
     virtual void ClearChatMessages() override;
     virtual void SetPreviewImage(std::unique_ptr<LvglImage> image) override;
+    virtual void SetMicrophoneIndicator(bool on) override;
+    virtual void SetCameraIndicator(bool on) override;
     virtual void UpdateStatusBar(bool update_all = false) override;
     virtual void SetupUI() override;
     virtual void SetTheme(Theme* theme) override;

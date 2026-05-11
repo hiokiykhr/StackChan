@@ -18,6 +18,84 @@ using namespace stackchan;
 
 static std::string _tag = "Setup-Connectivity";
 
+static std::string backend_webui_url()
+{
+    std::string url = CONFIG_OTA_URL;
+    auto pos = url.find("/xiaozhi/ota/");
+    if (pos != std::string::npos) {
+        url.replace(pos, std::string("/xiaozhi/ota/").size(), "/stackchan/");
+        return url;
+    }
+    pos = url.find("/xiaozhi/ota");
+    if (pos != std::string::npos) {
+        url.replace(pos, std::string("/xiaozhi/ota").size(), "/stackchan/");
+        return url;
+    }
+    if (!url.empty() && url.back() != '/') {
+        url += "/";
+    }
+    url += "stackchan/";
+    return url;
+}
+
+BackendWebUiWorker::BackendWebUiWorker()
+{
+    auto url = backend_webui_url();
+
+    _panel = std::make_unique<Container>(lv_screen_active());
+    _panel->setBgColor(lv_color_hex(0xEDF4FF));
+    _panel->align(LV_ALIGN_CENTER, 0, 0);
+    _panel->setBorderWidth(0);
+    _panel->setSize(320, 240);
+    _panel->setRadius(0);
+
+    _title = std::make_unique<Label>(lv_screen_active());
+    _title->setTextFont(&lv_font_montserrat_20);
+    _title->setTextColor(lv_color_hex(0x26206A));
+    _title->align(LV_ALIGN_TOP_MID, 0, 2);
+    _title->setText("Backend WebUI");
+
+    _info = std::make_unique<Label>(lv_screen_active());
+    _info->setTextFont(&lv_font_montserrat_14);
+    _info->setTextColor(lv_color_hex(0x26206A));
+    _info->align(LV_ALIGN_TOP_MID, 0, 26);
+    _info->setTextAlign(LV_TEXT_ALIGN_CENTER);
+    _info->setText("Scan on iPhone.\nBearer token required.");
+
+    _qrcode = std::make_unique<Qrcode>(lv_screen_active());
+    _qrcode->setSize(96);
+    _qrcode->setDarkColor(lv_color_hex(0x221C5B));
+    _qrcode->setLightColor(lv_color_hex(0xEDF4FF));
+    _qrcode->update(url);
+    _qrcode->align(LV_ALIGN_CENTER, 0, -8);
+
+    _url = std::make_unique<Label>(lv_screen_active());
+    _url->setTextFont(&lv_font_montserrat_14);
+    _url->setTextColor(lv_color_hex(0x26206A));
+    _url->setWidth(292);
+    _url->setTextAlign(LV_TEXT_ALIGN_CENTER);
+    _url->setLongMode(LV_LABEL_LONG_MODE_SCROLL_CIRCULAR);
+    _url->align(LV_ALIGN_BOTTOM_MID, 0, -46);
+    _url->setText(url);
+
+    _btn_back = std::make_unique<Button>(lv_screen_active());
+    apply_button_common_style(*_btn_back);
+    _btn_back->align(LV_ALIGN_BOTTOM_MID, 0, -4);
+    _btn_back->setSize(116, 38);
+    _btn_back->label().setText("Back");
+    _btn_back->onClick().connect([this]() { _is_done = true; });
+}
+
+BackendWebUiWorker::~BackendWebUiWorker()
+{
+    _btn_back.reset();
+    _url.reset();
+    _qrcode.reset();
+    _info.reset();
+    _title.reset();
+    _panel.reset();
+}
+
 WifiSetupWorker::WifiSetupWorker()
 {
     _state       = State::AppDownload;

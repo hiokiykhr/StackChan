@@ -6,6 +6,7 @@
 #include "hal.h"
 #include "drivers/Si12T/Si12T.h"
 #include "board/hal_bridge.h"
+#include "../xiaozhi-esp32/main/application.h"
 #include <mooncake_log.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -138,6 +139,29 @@ static void _head_touch_update_task(void* param)
         gesture = recognizer.update(data);
         if (gesture != HeadPetGesture::None) {
             GetHAL().onHeadPetGesture.emit(gesture);
+
+            if (hal_bridge::is_xiaozhi_mode()) {
+                auto& app = Application::GetInstance();
+                switch (gesture) {
+                    case HeadPetGesture::Press:
+                        app.SendCompanionWakeRequest("tap");
+                        app.StartListening();
+                        break;
+                    case HeadPetGesture::Release:
+                        app.SendCompanionCancel("current_turn");
+                        app.StopListening();
+                        break;
+                    case HeadPetGesture::SwipeForward:
+                        app.SendCompanionAuthSignal("button_long_press", "detected", "strong");
+                        break;
+                    case HeadPetGesture::SwipeBackward:
+                        app.SendCompanionAuthSignal("button_long_press", "cleared", "strong");
+                        app.SendCompanionCancel("auth");
+                        break;
+                    default:
+                        break;
+                }
+            }
         }
 
         vTaskDelay(pdMS_TO_TICKS(50));

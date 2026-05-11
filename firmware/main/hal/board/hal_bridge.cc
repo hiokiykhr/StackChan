@@ -5,6 +5,7 @@
  */
 #include "hal_bridge.h"
 #include "stackchan_display.h"
+#include "../nfc/nfc_service.h"
 #include <esp_log.h>
 #include <esp_err.h>
 #include <nvs.h>
@@ -114,6 +115,7 @@ void start_xiaozhi_app()
     // Initialize and run the application
     auto& app = Application::GetInstance();
     app.Initialize();
+    hal::NfcService::GetInstance().Start();
     app.Run();  // This function runs the main event loop and never returns
 }
 

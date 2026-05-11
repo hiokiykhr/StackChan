@@ -15,7 +15,17 @@
 #include <ctime>
 #include <sys/time.h>
 #include <esp_sntp.h>
+#include <esp_wifi.h>
 #include <atomic>
+#include <cstring>
+
+#ifndef CONFIG_STACKCHAN_HOME_WIFI_SSID
+#define CONFIG_STACKCHAN_HOME_WIFI_SSID ""
+#endif
+
+#ifndef CONFIG_STACKCHAN_TETHER_WIFI_SSID
+#define CONFIG_STACKCHAN_TETHER_WIFI_SSID ""
+#endif
 
 static std::string _tag           = "Network";
 static bool _is_network_connected = false;
@@ -137,4 +147,30 @@ WifiStatus Hal::getWifiStatus()
         return WifiStatus::Medium;
     }
     return WifiStatus::Low;
+}
+
+WifiConnectionType Hal::getWifiConnectionType()
+{
+    auto& wifi = WifiManager::GetInstance();
+    if (wifi.IsConfigMode() || !wifi.IsConnected()) {
+        return WifiConnectionType::None;
+    }
+
+    wifi_ap_record_t ap_info;
+    if (esp_wifi_sta_get_ap_info(&ap_info) != ESP_OK) {
+        return WifiConnectionType::None;
+    }
+
+    const auto* ssid = reinterpret_cast<const char*>(ap_info.ssid);
+    const std::string current_ssid(ssid, strnlen(ssid, sizeof(ap_info.ssid)));
+    const std::string home_ssid(CONFIG_STACKCHAN_HOME_WIFI_SSID);
+    const std::string tether_ssid(CONFIG_STACKCHAN_TETHER_WIFI_SSID);
+
+    if (!home_ssid.empty() && current_ssid == home_ssid) {
+        return WifiConnectionType::Home;
+    }
+    if (!tether_ssid.empty() && current_ssid == tether_ssid) {
+        return WifiConnectionType::Tethering;
+    }
+    return WifiConnectionType::Other;
 }

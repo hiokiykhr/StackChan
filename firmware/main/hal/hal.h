@@ -101,6 +101,13 @@ enum class WifiStatus {
     High,
 };
 
+enum class WifiConnectionType {
+    None = 0,
+    Other,
+    Home,
+    Tethering,
+};
+
 /**
  * @brief
  *
@@ -262,6 +269,7 @@ public:
     /* --------------------------------- Network -------------------------------- */
     void startNetwork(std::function<void(std::string_view)> onLog);
     WifiStatus getWifiStatus();
+    WifiConnectionType getWifiConnectionType();
     void startSntp();
 
     /* -------------------------------- App center ------------------------------- */

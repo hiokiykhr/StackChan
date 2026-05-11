@@ -50,6 +50,11 @@ void AppSetup::onOpen()
                   _destroy_menu    = true;
                   _need_warm_reset = true;
                   _worker          = std::make_unique<WifiSetupWorker>();
+              }},
+             {"Backend WebUI",
+              [&]() {
+                  _destroy_menu = true;
+                  _worker       = std::make_unique<BackendWebUiWorker>();
               }}},
         },
         {
@@ -90,6 +95,14 @@ void AppSetup::onOpen()
               [&]() {
                   _destroy_menu = true;
                   _worker       = std::make_unique<RgbTestWorker>();
+              }}},
+        },
+        {
+            "NFC",
+            {{"IC Balance",
+              [&]() {
+                  _destroy_menu = true;
+                  _worker       = std::make_unique<TransitBalanceWorker>();
               }}},
         },
         {
