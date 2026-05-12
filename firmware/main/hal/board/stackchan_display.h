@@ -19,6 +19,7 @@ private:
     int idle_expression_modifier_id_    = -1;
     int blink_modifier_id_              = -1;
     bool is_sleeping_                   = false;
+    uint8_t idle_motion_level_          = 2;
 
     lv_obj_t* preview_image_                         = nullptr;
     lv_obj_t* privacy_mic_dot_                       = nullptr;
@@ -32,6 +33,8 @@ private:
 
     void UpdatePrivacyIndicatorsLocked();
     void UpdateWifiConnectionIndicatorLocked();
+
+    void CreateIdleMotionModifier();
 
 protected:
     virtual bool Lock(int timeout_ms = 0) override;

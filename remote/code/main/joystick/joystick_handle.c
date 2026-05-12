@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: 2026 M5Stack Technology CO LTD
+ *
+ * SPDX-License-Identifier: MIT
+ */
 #include "joystick_handle.h"
 #include "i2c_bus.h"
 #include <string.h>
