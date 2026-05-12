@@ -12,7 +12,7 @@
 using namespace smooth_ui_toolkit::lvgl_cpp;
 using namespace setup_workers;
 
-static std::string _tag = "Setup-AIAgent";
+static std::string _tag = "Setup-Hermes";
 
 namespace {
 static const std::array<const char*, 4> _idle_motion_level_labels = {{"Off", "Low", "Medium", "High"}};
@@ -21,7 +21,7 @@ static const std::array<const char*, 4> _idle_motion_level_labels = {{"Off", "Lo
 
 XiaozhiPowerSavingWorker::XiaozhiPowerSavingWorker()
 {
-    mclog::info("XiaozhiPowerSavingWorker start");
+    mclog::info("HermesPowerSavingWorker start");
 
     for (uint32_t seconds = 0; seconds <= 3600; seconds += 300) {
         _idle_shutdown_levels.push_back(seconds);
@@ -129,7 +129,7 @@ void XiaozhiPowerSavingWorker::update()
         _confirm_flag                     = false;
         _config.allowShutdownWhenCharging = _switch_charging->getValue();
         GetHAL().setXiaozhiConfig(_config);
-        mclog::tagInfo(_tag, "xiaozhi config updated: idleShutdownTimeSeconds={}, allowShutdownWhenCharging={}",
+        mclog::tagInfo(_tag, "hermes config updated: idleShutdownTimeSeconds={}, allowShutdownWhenCharging={}",
                        _config.idleShutdownTimeSeconds, _config.allowShutdownWhenCharging);
         _is_done = true;
     }
@@ -148,7 +148,7 @@ void XiaozhiPowerSavingWorker::update_idle_label()
 
 XiaozhiGeneralWorker::XiaozhiGeneralWorker()
 {
-    mclog::info("XiaozhiGeneralWorker start");
+    mclog::info("HermesGeneralWorker start");
 
     _config = GetHAL().getXiaozhiConfig();
 
@@ -228,7 +228,7 @@ void XiaozhiGeneralWorker::update()
     if (_confirm_flag) {
         _confirm_flag = false;
         GetHAL().setXiaozhiConfig(_config);
-        mclog::tagInfo(_tag, "xiaozhi config updated: idleRandomMovementLevel={} ({})", _config.idleRandomMovementLevel,
+        mclog::tagInfo(_tag, "hermes config updated: idleRandomMovementLevel={} ({})", _config.idleRandomMovementLevel,
                        _idle_motion_level_labels[_config.idleRandomMovementLevel]);
         _is_done = true;
     }

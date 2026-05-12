@@ -18,7 +18,7 @@ using namespace smooth_ui_toolkit::lvgl_cpp;
 AppHermes::AppHermes()
 {
     setAppInfo().name = "HERMES";
-    static auto icon  = assets::get_image("icon_ai_agent.bin");
+    static auto icon  = assets::get_image("icon_hermes_agent.bin");
     setAppInfo().icon = (void*)&icon;
     static uint32_t theme_color = 0x6B4EFF;
     setAppInfo().userData       = (void*)&theme_color;
@@ -33,8 +33,7 @@ void AppHermes::onOpen()
 {
     mclog::tagInfo(getAppInfo().name, "on open");
 
-    // Reuse the existing XiaoZhi start bridge because the server-side path
-    // already points to the Hermes-compatible OTA/WebSocket backend.
+    // Start Hermes through the existing protocol-compatible voice bridge.
     GetHAL().requestXiaozhiStart();
 }
 

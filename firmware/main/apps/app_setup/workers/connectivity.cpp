@@ -53,14 +53,14 @@ BackendWebUiWorker::BackendWebUiWorker()
     _title->setTextFont(&lv_font_montserrat_20);
     _title->setTextColor(lv_color_hex(0x26206A));
     _title->align(LV_ALIGN_TOP_MID, 0, 2);
-    _title->setText("Backend WebUI");
+    _title->setText("Hermes WebUI");
 
     _info = std::make_unique<Label>(lv_screen_active());
     _info->setTextFont(&lv_font_montserrat_14);
     _info->setTextColor(lv_color_hex(0x26206A));
     _info->align(LV_ALIGN_TOP_MID, 0, 26);
     _info->setTextAlign(LV_TEXT_ALIGN_CENTER);
-    _info->setText("Scan on iPhone.\nBearer token required.");
+    _info->setText("Scan on iPhone.\nOwner login required.");
 
     _qrcode = std::make_unique<Qrcode>(lv_screen_active());
     _qrcode->setSize(96);
@@ -143,7 +143,7 @@ void WifiSetupWorker::update_state()
                 data.title->setTextFont(&lv_font_montserrat_20);
                 data.title->setTextColor(lv_color_hex(0x7E7B9C));
                 data.title->align(LV_ALIGN_TOP_MID, 0, 0);
-                data.title->setText("APP SETUP");
+                data.title->setText("HERMES SETUP");
 
                 data.info = std::make_unique<Label>(lv_screen_active());
                 data.info->setTextFont(&lv_font_montserrat_14);

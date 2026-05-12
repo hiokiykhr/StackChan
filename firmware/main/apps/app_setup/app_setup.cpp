@@ -51,7 +51,7 @@ void AppSetup::onOpen()
                   _need_warm_reset = true;
                   _worker          = std::make_unique<WifiSetupWorker>();
               }},
-             {"Backend WebUI",
+             {"Hermes WebUI",
               [&]() {
                   _destroy_menu = true;
                   _worker       = std::make_unique<BackendWebUiWorker>();
@@ -76,7 +76,7 @@ void AppSetup::onOpen()
               }}},
         },
         {
-            "AI.Agent",
+            "Hermes",
             {{"General",
               [&]() {
                   _destroy_menu    = true;

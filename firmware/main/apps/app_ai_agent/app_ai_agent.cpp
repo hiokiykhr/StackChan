@@ -18,7 +18,7 @@ using namespace smooth_ui_toolkit::lvgl_cpp;
 AppAiAgent::AppAiAgent()
 {
     // Configure App name
-    setAppInfo().name = "XIAOZHI";
+    setAppInfo().name = "HERMES";
     // Configure App icon
     static auto icon  = assets::get_image("icon_ai_agent.bin");
     setAppInfo().icon = (void*)&icon;
@@ -39,7 +39,7 @@ void AppAiAgent::onOpen()
 {
     mclog::tagInfo(getAppInfo().name, "on open");
 
-    // Request to start Xiaozhi service
+    // Request to start the Hermes voice service through the compatibility bridge.
     // All apps will be uninstall in next mooncake update
     GetHAL().requestXiaozhiStart();
 }

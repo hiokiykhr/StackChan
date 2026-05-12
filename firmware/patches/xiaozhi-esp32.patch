@@ -271,3 +271,16 @@ index 7bc917b..874b137 100644
  };
  
  #endif // I2C_DEVICE_H
+diff --git a/main/assets/locales/ja-JP/language.json b/main/assets/locales/ja-JP/language.json
+index 20dbe5d..3c1871d 100644
+--- a/main/assets/locales/ja-JP/language.json
++++ b/main/assets/locales/ja-JP/language.json
+@@ -50,7 +50,7 @@
+         "LOADING_ASSETS": "アセットを読み込み中...",
+         "PLEASE_WAIT": "お待ちください...",
+         "FOUND_NEW_ASSETS": "新しいアセットが見つかりました: %s",
+-        "HELLO_MY_FRIEND": "こんにちは、友達！",
++        "HELLO_MY_FRIEND": "こんにちは、くろーです！",
+         "CONNECTION_SUCCESSFUL": "接続成功",
+         "FLIGHT_MODE_OFF": "機内モードがオフです",
+         "FLIGHT_MODE_ON": "機内モードがオンです",

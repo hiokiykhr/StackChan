@@ -28,7 +28,6 @@ extern "C" void app_main(void)
 
     // Install apps
     GetMooncake().installApp(std::make_unique<AppLauncher>());
-    GetMooncake().installApp(std::make_unique<AppAiAgent>());
     GetMooncake().installApp(std::make_unique<AppHermes>());
     GetMooncake().installApp(std::make_unique<AppAvatar>());
     GetMooncake().installApp(std::make_unique<AppEspnowControl>());
@@ -53,6 +52,6 @@ extern "C" void app_main(void)
     GetMooncake().uninstallAllApps();
     DestroyMooncake();
 
-    // Start xiaozhi, never returns
+    // Start Hermes voice mode through the protocol-compatible bridge; never returns.
     GetHAL().startXiaozhi();
 }
