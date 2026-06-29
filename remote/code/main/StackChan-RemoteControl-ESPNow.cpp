@@ -78,6 +78,7 @@ void app_main(void)
     M5.begin();
     M5.Power.begin();
     M5.Power.setExtOutput(true);  // enable external port power for StickS3 / Grove devices
+    M5.Lcd.setBrightness(100);    // set brightness to 100
     M5.Imu.init(&M5.In_I2C);      // init IMU with internal I2C port
     printf("IN_I2C port: %d\n", M5.In_I2C.getPort());
     printf("EX_I2C port: %d (SDA=%d, SCL=%d)\n", M5.Ex_I2C.getPort(), M5.Ex_I2C.getSDA(), M5.Ex_I2C.getSCL());
