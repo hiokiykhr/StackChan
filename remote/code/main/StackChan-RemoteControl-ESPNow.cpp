@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 #include "M5Unified.h"
+#include "sdkconfig.h"
 
 extern "C" {
 #include <stdio.h>
@@ -23,6 +24,45 @@ extern "C" {
 using namespace m5;
 
 joystick_data_t joystick_data;
+
+static void resolve_joystick_i2c_pins(int &sda_pin, int &scl_pin, const char *&board_name, const char *&port_name)
+{
+#if CONFIG_STACKCHAN_TARGET_M5STICK_C_PLUS
+    board_name = "M5StickC Plus";
+#elif CONFIG_STACKCHAN_TARGET_M5STICK_S3
+    board_name = "M5StickS3";
+#else
+    board_name = "Unknown";
+#endif
+
+#if CONFIG_STACKCHAN_JOYSTICK_PORT_LEGACY_STICKC_HAT
+    port_name = "StickC Plus HAT / legacy";
+    sda_pin   = 0;
+    scl_pin   = 26;
+#elif CONFIG_STACKCHAN_JOYSTICK_PORT_MINIJOYC_HAT
+    port_name = "MiniJoyC HAT";
+    // MiniJoyC is a StickC-family HAT. On M5StickS3 the HAT I2C pins are
+    // different from M5Unified's Grove/Ex_I2C pins (SDA=GPIO9, SCL=GPIO10).
+    sda_pin = 2;
+    scl_pin = 1;
+#elif CONFIG_STACKCHAN_JOYSTICK_PORT_GROVE
+    port_name = "Grove / M5.Ex_I2C";
+    sda_pin   = M5.Ex_I2C.getSDA();
+    scl_pin   = M5.Ex_I2C.getSCL();
+#else
+    port_name = "Fallback M5.Ex_I2C";
+    sda_pin   = M5.Ex_I2C.getSDA();
+    scl_pin   = M5.Ex_I2C.getSCL();
+#endif
+
+    if (sda_pin < 0 || scl_pin < 0) {
+        ESP_LOGW("StackChan", "Resolved invalid I2C pins for %s/%s (%d, %d), falling back to legacy StickC+ pins",
+                 board_name, port_name, sda_pin, scl_pin);
+        port_name = "Fallback StickC Plus HAT / legacy";
+        sda_pin   = 0;
+        scl_pin   = 26;
+    }
+}
 
 // extern void lvgl_port_init(M5GFX &gfx);
 
@@ -75,16 +115,38 @@ void app_main(void)
         ret = nvs_flash_init();
     }
 
-    M5.begin();
+    auto cfg = M5.config();
+#if CONFIG_STACKCHAN_TARGET_M5STICK_S3
+    cfg.fallback_board = m5gfx::board_t::board_M5StickS3;
+#elif CONFIG_STACKCHAN_TARGET_M5STICK_C_PLUS
+    cfg.fallback_board = m5gfx::board_t::board_M5StickCPlus;
+#endif
+    cfg.clear_display = true;
+    cfg.output_power   = true;
+    cfg.pmic_button    = true;
+    cfg.internal_imu   = true;
+    cfg.internal_rtc   = true;
+    cfg.internal_mic   = true;
+    cfg.internal_spk   = true;
+    M5.begin(cfg);
     M5.Power.begin();
     M5.Power.setExtOutput(true);  // enable external port power for StickS3 / Grove devices
     M5.Lcd.setBrightness(100);    // set brightness to 100
     M5.Imu.init(&M5.In_I2C);      // init IMU with internal I2C port
+    printf("Board: %d\n", (int)M5.getBoard());
     printf("IN_I2C port: %d\n", M5.In_I2C.getPort());
     printf("EX_I2C port: %d (SDA=%d, SCL=%d)\n", M5.Ex_I2C.getPort(), M5.Ex_I2C.getSDA(), M5.Ex_I2C.getSCL());
     printf("M5 Display width: %ld, height: %ld\n", M5.Display.width(), M5.Display.height());
 
-    joystick_data = joystick_init(M5.Ex_I2C.getSDA(), M5.Ex_I2C.getSCL());  // init joystick
+    int joystick_sda = 0;
+    int joystick_scl = 0;
+    const char *board_name = nullptr;
+    const char *joystick_port_name = nullptr;
+    resolve_joystick_i2c_pins(joystick_sda, joystick_scl, board_name, joystick_port_name);
+    printf("Board profile: %s, joystick port: %s, I2C SDA=%d, SCL=%d\n", board_name, joystick_port_name,
+           joystick_sda, joystick_scl);
+
+    joystick_data = joystick_init(joystick_sda, joystick_scl);  // init joystick
 
     lvgl_port_init();  // init LVGL
     ui_init();         // init UI

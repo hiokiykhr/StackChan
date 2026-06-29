@@ -177,7 +177,6 @@ void update_imu_cube(float ax, float ay, float az)
 
         // Roll
         float x2 = x1 * cos(roll) + z1 * sin(roll);
-        float z2 = -x1 * sin(roll) + z1 * cos(roll);
         float y2 = y1;
 
         // Orthographic projection

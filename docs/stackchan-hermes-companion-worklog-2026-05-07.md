@@ -1,6 +1,6 @@
 # StackChan Hermes / Companion 改造ワークログ
 
-最終更新: 2026-05-07 01:30 JST
+最終更新: 2026-05-19 09:45 JST
 対象リポジトリ: `/Users/p00939/dev/stackchan`
 関連バックエンド: `/Users/p00939/dev/xiaozhi-esp32-server`
 実機ポート: `/dev/tty.usbmodem21201`（monitor は `/dev/cu.usbmodem21201` も可）
@@ -174,6 +174,12 @@ bash -lc 'source /Users/p00939/esp-idf-v5.5.4/export.sh >/dev/null && idf.py -p 
 3. transport が安定したら、口パク開始を `sentence_start` ではなく実PCM再生開始/再生中 buffer level へさらに近づける。
 4. IC残高照会の 302円カード確認。
 5. おひろちゃんモード用 NFC 登録を backend 再起動後に実機確認。
+
+## プロダクトバックログ
+
+- M5StickS3 を StackChan のカメラファインダーとして活用する。
+  - 想定ユースケース: StackChan本体カメラの見えている範囲を手元で確認する。
+  - 検討観点: 映像転送方式、UI/操作系、給電/バッテリー、StackChan本体との通信方式、屋内/屋外運用時のレイテンシと安定性。
 
 ## 注意事項
 

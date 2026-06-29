@@ -49,12 +49,12 @@ dependencies:
       type: service
     version: 8.4.0
   m5stack/m5gfx:
-    component_hash: 96695547f4403f0864a637325b63b37276233999fcbdd5e485f4e71fd2210020
+    component_hash: 8e19e000cfb2724e55040392cc2a461a2aa4ad217978b7d4b7465bca4149d12f
     dependencies: []
     source:
       registry_url: https://components.espressif.com
       type: service
-    version: 0.2.23
+    version: 0.2.24
   m5stack/m5unified:
     component_hash: 363c05d034f103471dcbe76e5e0773ecc0fe263212930259867212341b1e48a4
     dependencies:
@@ -72,6 +72,6 @@ direct_dependencies:
 - idf
 - lvgl/lvgl
 - m5stack/m5unified
-manifest_hash: 1a633f7edf3e64c57d1f921f15913b2bf6deda0e71113957a364b6552fa37e9b
+manifest_hash: dcf5a8b9158ceba6656057f11794d186f6222be421c6b2023bdeee009adce7e8
 target: esp32s3
 version: 2.0.0

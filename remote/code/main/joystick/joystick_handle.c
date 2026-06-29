@@ -5,10 +5,45 @@
  */
 #include "joystick_handle.h"
 #include "i2c_bus.h"
+#include "esp_err.h"
 #include <string.h>
 #include <stdlib.h>
 
+#define MINIJOYC_I2C_ADDR 0x54
+
 i2c_bus_device_handle_t i2c_device1;  // i2c device handle
+static bool joystick_i2c_found = false;
+
+static i2c_bus_handle_t joystick_scan_bus(int sda_pin, int scl_pin, const char *label)
+{
+    i2c_config_t conf;
+    {
+        conf.mode             = I2C_MODE_MASTER;
+        conf.sda_io_num       = sda_pin;
+        conf.scl_io_num       = scl_pin;
+        conf.sda_pullup_en    = GPIO_PULLUP_ENABLE;
+        conf.scl_pullup_en    = GPIO_PULLUP_ENABLE;
+        conf.master.clk_speed = 100000;
+        conf.clk_flags        = 0;
+    };
+
+    ESP_LOGI("I2C Joystick", "Scanning %s on SDA=%d, SCL=%d", label, sda_pin, scl_pin);
+    i2c_bus_handle_t i2c0_bus = i2c_bus_create(I2C_NUM_0, &conf);
+
+    uint8_t buf[128];
+    memset(buf, 0, sizeof(buf));
+    i2c_bus_scan(i2c0_bus, buf, sizeof(buf));
+    for (size_t i = 0; i < sizeof(buf); i++) {
+        if (buf[i] != 0) {
+            ESP_LOGI("I2C Scanner", "Found device at address 0x%02X on SDA=%d, SCL=%d", buf[i], sda_pin, scl_pin);
+            if (buf[i] == MINIJOYC_I2C_ADDR) {
+                joystick_i2c_found = true;
+            }
+        }
+    }
+
+    return i2c0_bus;
+}
 
 /**
  * @brief Initialize joystick via I2C interface
@@ -29,28 +64,58 @@ static void joystick_i2c_init(int sda_pin, int scl_pin)
         scl_pin = 26;
     }
 
-    i2c_config_t conf;
-    {
-        conf.mode             = I2C_MODE_MASTER;
-        conf.sda_io_num       = sda_pin;
-        conf.scl_io_num       = scl_pin;
-        conf.sda_pullup_en    = GPIO_PULLUP_ENABLE;
-        conf.scl_pullup_en    = GPIO_PULLUP_ENABLE;
-        conf.master.clk_speed = 100000;
-        conf.clk_flags        = 0;
-    };
-    i2c_bus_handle_t i2c0_bus = i2c_bus_create(I2C_NUM_0, &conf);
-    uint8_t buf[128];
-    memset(buf, 0, sizeof(buf));
+    typedef struct {
+        int sda;
+        int scl;
+        const char *label;
+    } joystick_i2c_candidate_t;
 
-    i2c_bus_scan(i2c0_bus, buf, sizeof(buf));
-    for (size_t i = 0; i < sizeof(buf); i++) {
-        if (buf[i] != 0) {
-            ESP_LOGI("I2C Scanner", "Found device at address 0x%02X", buf[i]);
+    const joystick_i2c_candidate_t candidates[] = {
+        {sda_pin, scl_pin, "configured port"},
+        {2, 1, "M5StickS3 HAT candidate"},
+        {9, 10, "M5StickS3 Grove candidate"},
+        {0, 26, "M5StickC/CPlus HAT candidate"},
+    };
+
+    joystick_i2c_found       = false;
+    i2c_bus_handle_t i2c_bus = NULL;
+    int active_sda           = sda_pin;
+    int active_scl           = scl_pin;
+
+    for (size_t i = 0; i < sizeof(candidates) / sizeof(candidates[0]); i++) {
+        bool duplicate = false;
+        for (size_t j = 0; j < i; j++) {
+            if (candidates[i].sda == candidates[j].sda && candidates[i].scl == candidates[j].scl) {
+                duplicate = true;
+                break;
+            }
+        }
+        if (duplicate) {
+            continue;
+        }
+
+        joystick_i2c_found = false;
+        i2c_bus            = joystick_scan_bus(candidates[i].sda, candidates[i].scl, candidates[i].label);
+        active_sda         = candidates[i].sda;
+        active_scl         = candidates[i].scl;
+        if (joystick_i2c_found) {
+            break;
+        }
+        if (i2c_bus != NULL) {
+            i2c_bus_delete(&i2c_bus);
         }
     }
 
-    i2c_device1 = i2c_bus_device_create(i2c0_bus, 0x54, 0);
+    if (!joystick_i2c_found) {
+        ESP_LOGW("I2C Joystick", "MiniJoyC not found at address 0x%02X on scanned I2C candidates", MINIJOYC_I2C_ADDR);
+        i2c_device1 = NULL;
+        return;
+    } else {
+        ESP_LOGI("I2C Joystick", "MiniJoyC detected at address 0x%02X on SDA=%d, SCL=%d", MINIJOYC_I2C_ADDR,
+                 active_sda, active_scl);
+    }
+
+    i2c_device1 = i2c_bus_device_create(i2c_bus, MINIJOYC_I2C_ADDR, 0);
 }
 
 /**
@@ -69,14 +134,26 @@ static void joystick_i2c_init(int sda_pin, int scl_pin)
 static void joystick_read_xy(uint16_t *joyX, uint16_t *joyY)
 {
     uint8_t data[4];
-    esp_err_t ret = i2c_bus_read_bytes(i2c_device1, 0x00, 2, data);
+    esp_err_t ret;
+
+    if (!joystick_i2c_found || i2c_device1 == NULL) {
+        *joyX = X_CENTER;
+        *joyY = Y_CENTER;
+        return;
+    }
+
+    ret = i2c_bus_read_bytes(i2c_device1, 0x00, 2, &data[0]);
     vTaskDelay(20 / portTICK_PERIOD_MS);
     ret |= i2c_bus_read_bytes(i2c_device1, 0x02, 2, &data[2]);
     if (ret == ESP_OK) {
         *joyX = (data[1] << 8) | data[0];
         *joyY = (data[3] << 8) | data[2];
     } else {
-        // ESP_LOGE("I2C Joystick", "Failed to read joystick data");
+        static uint32_t read_fail_count = 0;
+        if ((read_fail_count++ % 100) == 0) {
+            ESP_LOGW("I2C Joystick", "Failed to read MiniJoyC data (ret=%s, found_at_boot=%d)", esp_err_to_name(ret),
+                     joystick_i2c_found);
+        }
     }
 }
 
@@ -239,8 +316,6 @@ void handle_running_screen(void *pvParam)
 void handle_imu_screen(void *pvParam)
 {
     joystick_data_t *joystick_data = (joystick_data_t *)pvParam;
-
-    static IMU_Angle_t last_imu_angle = {0.0f, 0.0f};
 
     // communicate packet
     uint8_t pkt[8];
