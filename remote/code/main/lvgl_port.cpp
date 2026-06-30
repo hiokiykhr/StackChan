@@ -32,7 +32,7 @@ static void lvgl_rtos_task(void *pvParameter)
 static lv_disp_draw_buf_t draw_buf;
 static void lvgl_flush_cb(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p)
 {
-    (void)disp->user_data;
+    M5GFX &gfx      = *(M5GFX *)disp->user_data;
     int w           = (area->x2 - area->x1 + 1);
     int h           = (area->y2 - area->y1 + 1);
     uint32_t pixels = w * h;
@@ -69,8 +69,6 @@ static void lvgl_flush_cb(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t
 // BtnA / BtnB
 static void lvgl_read_cb(lv_indev_drv_t *indev_driver, lv_indev_data_t *data)
 {
-    (void)indev_driver;
-    (void)data;
 }
 
 void lvgl_port_init(void)
@@ -102,16 +100,10 @@ void lvgl_port_init(void)
     indev_drv.read_cb = lvgl_read_cb;
     // indev_drv.user_data = &gfx;
     indev_drv.user_data = &M5.Display;
-    (void)lv_indev_drv_register(&indev_drv);
+    lv_indev_t *indev   = lv_indev_drv_register(&indev_drv);
 
-    xGuiSemaphore = xSemaphoreCreateMutex();
-    const esp_timer_create_args_t periodic_timer_args = {
-        .callback = &lvgl_tick_timer,
-        .arg = NULL,
-        .dispatch_method = ESP_TIMER_TASK,
-        .name = "lvgl_tick_timer",
-        .skip_unhandled_events = true,
-    };
+    xGuiSemaphore                                     = xSemaphoreCreateMutex();
+    const esp_timer_create_args_t periodic_timer_args = {.callback = &lvgl_tick_timer, .name = "lvgl_tick_timer"};
     esp_timer_handle_t periodic_timer;
     ESP_ERROR_CHECK(esp_timer_create(&periodic_timer_args, &periodic_timer));
     ESP_ERROR_CHECK(esp_timer_start_periodic(periodic_timer, 10 * 1000));

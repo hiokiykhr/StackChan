@@ -73,5 +73,5 @@ direct_dependencies:
 - lvgl/lvgl
 - m5stack/m5unified
 manifest_hash: dcf5a8b9158ceba6656057f11794d186f6222be421c6b2023bdeee009adce7e8
-target: esp32s3
+target: esp32
 version: 2.0.0
