@@ -39,6 +39,14 @@ class TestHermesBuddyWebhookSecurity(unittest.TestCase):
             with self.assertRaises(RuntimeError):
                 webhook.validate_startup_config(token=token, host='0.0.0.0')
 
+    def test_startup_rejects_public_bind_without_https_base_url(self):
+        token = 'x' * 32
+        with mock.patch.dict(os.environ, {'HERMES_BUDDY_ALLOW_PUBLIC_BIND': '1'}, clear=True):
+            with self.assertRaises(RuntimeError):
+                webhook.validate_startup_config(token=token, host='0.0.0.0')
+        with mock.patch.dict(os.environ, {'HERMES_BUDDY_ALLOW_PUBLIC_BIND': '1', 'HERMES_BUDDY_PUBLIC_BASE_URL': 'https://example.test'}, clear=True):
+            webhook.validate_startup_config(token=token, host='0.0.0.0')
+
     def test_token_never_uses_url_path_and_authorization_is_required(self):
         token = 'x' * 32
         self.assertFalse(webhook.is_authorized(Headers({}), token))
@@ -91,6 +99,16 @@ class TestHermesBuddyWebhookSecurity(unittest.TestCase):
             webhook.check_rate_limit('device-2', now=1_700_000_000 + idx)
         with self.assertRaises(ValueError):
             webhook.check_rate_limit('device-2', now=1_700_000_010)
+
+    def test_rate_limit_device_map_is_bounded(self):
+        original_max = webhook.MAX_RATE_LIMIT_DEVICES
+        try:
+            webhook.MAX_RATE_LIMIT_DEVICES = 3
+            for idx in range(10):
+                webhook.check_rate_limit(f'device-{idx}', now=1_700_000_000 + idx)
+            self.assertLessEqual(len(webhook._device_hits), 3)
+        finally:
+            webhook.MAX_RATE_LIMIT_DEVICES = original_max
 
     def _payload(self, action='secretary.task.next', request_id='req-1', device_id='device-1', context=None):
         return {

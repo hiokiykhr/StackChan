@@ -3,11 +3,12 @@ import json
 import os
 import re
 import sys
+import threading
 import time
 from collections import OrderedDict, defaultdict, deque
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from hashlib import sha256
 from secrets import compare_digest
-from socketserver import ThreadingMixIn
 from urllib.parse import urlparse
 
 HOST = os.environ.get('HERMES_BUDDY_HOST', '127.0.0.1')
@@ -19,6 +20,7 @@ RATE_LIMIT_WINDOW = int(os.environ.get('HERMES_BUDDY_RATE_WINDOW', '60'))
 RATE_LIMIT_PER_DEVICE = int(os.environ.get('HERMES_BUDDY_RATE_PER_DEVICE', '30'))
 REQUEST_TTL_SECONDS = int(os.environ.get('HERMES_BUDDY_REQUEST_TTL_SECONDS', '300'))
 MAX_SEEN_REQUESTS = int(os.environ.get('HERMES_BUDDY_MAX_SEEN_REQUESTS', '1024'))
+MAX_RATE_LIMIT_DEVICES = int(os.environ.get('HERMES_BUDDY_MAX_RATE_LIMIT_DEVICES', '1024'))
 MIN_TOKEN_LENGTH = 32
 
 ACTION_COPY = {
@@ -31,6 +33,7 @@ SAFE_ID_RE = re.compile(r'^[A-Za-z0-9._:-]{1,80}$')
 
 _seen_requests = OrderedDict()
 _device_hits = defaultdict(deque)
+_state_lock = threading.Lock()
 
 
 def validate_startup_config(token: str = TOKEN, host: str = HOST):
@@ -40,6 +43,10 @@ def validate_startup_config(token: str = TOKEN, host: str = HOST):
         raise RuntimeError('HERMES_BUDDY_TOKEN must be a non-default high-entropy value of at least 32 characters')
     if host in {'0.0.0.0', '::'} and os.environ.get('HERMES_BUDDY_ALLOW_PUBLIC_BIND') != '1':
         raise RuntimeError('public bind requires HERMES_BUDDY_ALLOW_PUBLIC_BIND=1 and a reverse proxy')
+    if host in {'0.0.0.0', '::'}:
+        public_base_url = os.environ.get('HERMES_BUDDY_PUBLIC_BASE_URL', '')
+        if not public_base_url.startswith('https://'):
+            raise RuntimeError('public bind requires HERMES_BUDDY_PUBLIC_BASE_URL=https://... behind TLS-terminating proxy')
 
 
 def fallback_payload(action: str):
@@ -87,24 +94,32 @@ def validate_payload(payload: dict, now=None):
 def check_replay(device_id: str, request_id: str, now=None):
     now = int(now if now is not None else time.time())
     key = f'{device_id}:{request_id}'
-    expired = [k for k, ts in _seen_requests.items() if now - ts > REQUEST_TTL_SECONDS]
-    for k in expired:
-        _seen_requests.pop(k, None)
-    if key in _seen_requests:
-        raise ValueError('duplicate request id')
-    _seen_requests[key] = now
-    while len(_seen_requests) > MAX_SEEN_REQUESTS:
-        _seen_requests.popitem(last=False)
+    with _state_lock:
+        expired = [k for k, ts in _seen_requests.items() if now - ts > REQUEST_TTL_SECONDS]
+        for k in expired:
+            _seen_requests.pop(k, None)
+        if key in _seen_requests:
+            raise ValueError('duplicate request id')
+        _seen_requests[key] = now
+        while len(_seen_requests) > MAX_SEEN_REQUESTS:
+            _seen_requests.popitem(last=False)
 
 
 def check_rate_limit(device_id: str, now=None):
     now = int(now if now is not None else time.time())
-    hits = _device_hits[device_id]
-    while hits and now - hits[0] >= RATE_LIMIT_WINDOW:
-        hits.popleft()
-    if len(hits) >= RATE_LIMIT_PER_DEVICE:
-        raise ValueError('rate limit exceeded')
-    hits.append(now)
+    with _state_lock:
+        for key in list(_device_hits.keys()):
+            hits_for_key = _device_hits[key]
+            while hits_for_key and now - hits_for_key[0] >= RATE_LIMIT_WINDOW:
+                hits_for_key.popleft()
+            if not hits_for_key:
+                _device_hits.pop(key, None)
+        while len(_device_hits) >= MAX_RATE_LIMIT_DEVICES and device_id not in _device_hits:
+            _device_hits.pop(next(iter(_device_hits)))
+        hits = _device_hits[device_id]
+        if len(hits) >= RATE_LIMIT_PER_DEVICE:
+            raise ValueError('rate limit exceeded')
+        hits.append(now)
 
 
 def parse_content_length(headers):
@@ -127,7 +142,9 @@ def is_authorized(headers, token: str = TOKEN):
     prefix = 'Bearer '
     if not auth.startswith(prefix):
         return False
-    return compare_digest(auth[len(prefix):], token)
+    provided_digest = sha256(auth[len(prefix):].encode('utf-8')).digest()
+    expected_digest = sha256(token.encode('utf-8')).digest()
+    return compare_digest(provided_digest, expected_digest)
 
 
 class BoundedThreadingHTTPServer(ThreadingHTTPServer):

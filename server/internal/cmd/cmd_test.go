@@ -16,8 +16,12 @@ func TestSafeStaticFilePathAllowsFileUnderRoot(t *testing.T) {
 	if err != nil {
 		t.Fatalf("safeStaticFilePath returned error: %v", err)
 	}
-	if got != want {
-		t.Fatalf("got %q, want %q", got, want)
+	wantEval, err := filepath.EvalSymlinks(want)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got != wantEval {
+		t.Fatalf("got %q, want %q", got, wantEval)
 	}
 }
 

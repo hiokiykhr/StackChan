@@ -32,7 +32,7 @@ const (
 
 var (
 	allowedUploadDirs = map[string]string{
-		"":       defaultUploadDir,
+		"":        defaultUploadDir,
 		"uploads": defaultUploadDir,
 		"avatar":  "avatar",
 		"post":    "post",

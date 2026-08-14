@@ -70,7 +70,7 @@ const (
 
 var (
 	macAddressPattern = regexp.MustCompile(`^(?:[0-9A-Fa-f]{12}|[0-9A-Fa-f]{2}(?::[0-9A-Fa-f]{2}){5})$`)
-	wsUpGrader = websocket.Upgrader{
+	wsUpGrader        = websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool { return true },
 		Error: func(w http.ResponseWriter, r *http.Request, status int, reason error) {
 			logger.Errorf(r.Context(), "WebSocket Upgrade failed: %v", reason)
@@ -523,7 +523,7 @@ func readAppClientMessage(ctx context.Context, client *model.AppClient, messageT
 			// Query device name
 			name, err := service.GetDeviceName(ctx, client.GetMac())
 			if err != nil {
-				logger.Errorf(ctx, err.Error())
+				logger.Errorf(ctx, "%v", err)
 				return
 			}
 			if name == "" {
@@ -531,7 +531,7 @@ func readAppClientMessage(ctx context.Context, client *model.AppClient, messageT
 				return
 			}
 			newMsg := createStringMessage(GetDeviceName, name)
-			logger.Infof(ctx, "Device name found, returning: "+name)
+			logger.Infof(ctx, "Device name found, returning: %s", name)
 			appSendMessage(ctx, client, messageType, newMsg)
 			break
 		case UpdateDeviceName:
