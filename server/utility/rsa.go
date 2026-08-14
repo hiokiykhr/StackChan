@@ -27,9 +27,7 @@ var (
 )
 
 func init() {
-	if err := InitRSAKeys(); err != nil {
-		panic(err)
-	}
+	_ = InitRSAKeys()
 }
 
 // InitRSAKeys Initialize RSA keys from configuration file
@@ -144,7 +142,9 @@ func parsePrivateKey(pemBytes []byte) (*rsa.PrivateKey, error) {
 // RSAEncrypt Encrypt using client public key (used when server sends data to client)
 func RSAEncrypt(plainText []byte) ([]byte, error) {
 	if !initialized {
-		return nil, errors.New("RSA keys not initialized")
+		if err := InitRSAKeys(); err != nil {
+			return nil, err
+		}
 	}
 
 	// Use OAEP padding, SHA256 hash
@@ -160,7 +160,9 @@ func RSAEncrypt(plainText []byte) ([]byte, error) {
 // RSADecrypt Decrypt using server private key (used when server receives client data)
 func RSADecrypt(cipherText []byte) ([]byte, error) {
 	if !initialized {
-		return nil, errors.New("RSA keys not initialized")
+		if err := InitRSAKeys(); err != nil {
+			return nil, err
+		}
 	}
 
 	// Use OAEP padding, SHA256 hash

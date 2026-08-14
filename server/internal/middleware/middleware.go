@@ -24,16 +24,20 @@ type DefaultHandlerResponse struct {
 	Data    any    `json:"data"    dc:"Result data for certain request according API definition"`
 }
 
-// TokenAuthMiddleware token
+// TokenAuthMiddleware authenticates device/app API requests.
+// Authentication is intentionally fail-closed: malformed, missing, expired or
+// undecryptable credentials must never reach downstream controllers.
 func TokenAuthMiddleware(r *ghttp.Request) {
 	mac, err := web_socket.GetMac(r)
-	if err != nil {
-		r.Middleware.Next()
+	if err != nil || mac == "" {
+		r.Response.WriteStatusExit(401, DefaultHandlerResponse{
+			Code:    401,
+			Message: "Unauthorized",
+			Data:    nil,
+		})
 		return
 	}
-	if mac != "" {
-		r.SetCtxVar(model.Mac, mac)
-	}
+	r.SetCtxVar(model.Mac, mac)
 	r.Middleware.Next()
 }
 
