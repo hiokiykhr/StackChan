@@ -7,8 +7,13 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"net/http"
+	"net/url"
+	"os"
 	"path/filepath"
+	"strings"
+
 	"stackChan/internal/boot"
 	"stackChan/internal/controller/admin"
 	"stackChan/internal/controller/appstore"
@@ -27,8 +32,73 @@ import (
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/os/gcmd"
-	"github.com/gogf/gf/v2/os/gfile"
 )
+
+var errInvalidStaticPath = errors.New("invalid static file path")
+
+func safeStaticFilePath(rootDir, rawPath string) (string, error) {
+	if rawPath == "" || strings.ContainsRune(rawPath, '\x00') {
+		return "", errInvalidStaticPath
+	}
+	decoded := rawPath
+	for i := 0; i < 2; i++ {
+		unescaped, err := url.PathUnescape(decoded)
+		if err != nil {
+			return "", errInvalidStaticPath
+		}
+		if unescaped == decoded {
+			break
+		}
+		decoded = unescaped
+	}
+	if strings.Contains(decoded, "%") || strings.Contains(decoded, "\\") || filepath.IsAbs(decoded) {
+		return "", errInvalidStaticPath
+	}
+	for _, part := range strings.Split(decoded, "/") {
+		if part == ".." || strings.ContainsRune(part, '\x00') {
+			return "", errInvalidStaticPath
+		}
+	}
+
+	rootAbs, err := filepath.Abs(rootDir)
+	if err != nil {
+		return "", err
+	}
+	rootEval, err := filepath.EvalSymlinks(rootAbs)
+	if err != nil {
+		return "", err
+	}
+	targetAbs, err := filepath.Abs(filepath.Join(rootEval, filepath.Clean(decoded)))
+	if err != nil {
+		return "", errInvalidStaticPath
+	}
+	if !pathInside(rootEval, targetAbs) {
+		return "", errInvalidStaticPath
+	}
+	targetEval, err := filepath.EvalSymlinks(targetAbs)
+	if err != nil {
+		return "", err
+	}
+	if !pathInside(rootEval, targetEval) {
+		return "", errInvalidStaticPath
+	}
+	info, err := os.Stat(targetEval)
+	if err != nil {
+		return "", err
+	}
+	if !info.Mode().IsRegular() {
+		return "", errInvalidStaticPath
+	}
+	return targetEval, nil
+}
+
+func pathInside(rootAbs, targetAbs string) bool {
+	rel, err := filepath.Rel(rootAbs, targetAbs)
+	if err != nil {
+		return false
+	}
+	return rel == "." || (rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)))
+}
 
 var (
 	Main = gcmd.Command{
@@ -55,8 +125,8 @@ var (
 						r.Response.Write("File not found")
 						return
 					}
-					filePath := filepath.Join("file", relativePath)
-					if !gfile.Exists(filePath) {
+					filePath, err := safeStaticFilePath("file", relativePath)
+					if err != nil {
 						r.Response.WriteHeader(http.StatusNotFound)
 						r.Response.Write("File not found")
 						return

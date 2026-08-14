@@ -12,6 +12,10 @@ config SECRETARY_WEBHOOK_URL
     string "Webhook URL"
     default ""
 
+config SECRETARY_WEBHOOK_TOKEN
+    string "Webhook bearer token"
+    default ""
+
 config SECRETARY_DEVICE_ID
     string "Device ID"
     default "m5sticks3-hermes-hardware-buddy"

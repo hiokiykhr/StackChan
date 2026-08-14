@@ -17,6 +17,7 @@ extern "C" {
 }
 
 #include <cstring>
+#include <cstdio>
 #include <string>
 #include <sys/time.h>
 #include <time.h>
@@ -493,6 +494,19 @@ ActionResult send_selected_action()
         return result;
     }
 
+    if (std::strlen(CONFIG_SECRETARY_WEBHOOK_TOKEN) < 32) {
+        result.message = "認証が未設定だよ";
+        result.body = "tokenを設定してね";
+        return result;
+    }
+
+    const std::string webhook_url(CONFIG_SECRETARY_WEBHOOK_URL);
+    if (webhook_url.find("/buddy/") != std::string::npos && webhook_url.find("/buddy/actions") == std::string::npos) {
+        result.message = "URLを見直してね";
+        result.body = "token入りURLは使わないよ";
+        return result;
+    }
+
     if (!s_wifi_connected) {
         result.message = "Wi-Fi まだだよ";
         result.body = "でんぱを確認してね";
@@ -509,8 +523,10 @@ ActionResult send_selected_action()
     cJSON_AddStringToObject(device, "firmware", CONFIG_SECRETARY_FIRMWARE_LABEL);
 
     ++s_request_id;
-    cJSON_AddNumberToObject(request, "id", s_request_id);
-    cJSON_AddNumberToObject(request, "timestamp_ms", static_cast<double>(get_timestamp_ms()));
+    char request_id[32];
+    std::snprintf(request_id, sizeof(request_id), "%llu", static_cast<unsigned long long>(s_request_id));
+    cJSON_AddStringToObject(request, "id", request_id);
+    cJSON_AddNumberToObject(request, "timestamp", static_cast<double>(get_timestamp_ms() / 1000));
     cJSON_AddStringToObject(request, "action", action.action);
 
     cJSON_AddNumberToObject(context, "battery", clamp_battery(M5.Power.getBatteryLevel()));
@@ -533,6 +549,8 @@ ActionResult send_selected_action()
 
     esp_http_client_handle_t client = esp_http_client_init(&config);
     esp_http_client_set_header(client, "Content-Type", "application/json");
+    std::string auth_header = std::string("Bearer ") + CONFIG_SECRETARY_WEBHOOK_TOKEN;
+    esp_http_client_set_header(client, "Authorization", auth_header.c_str());
     esp_http_client_set_post_field(client, json_body, std::strlen(json_body));
 
     esp_err_t err = esp_http_client_perform(client);

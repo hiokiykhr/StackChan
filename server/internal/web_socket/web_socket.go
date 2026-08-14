@@ -12,13 +12,15 @@ import (
 	"errors"
 	"net"
 	"net/http"
-	"stackChan/internal/model"
-	"stackChan/internal/service"
-	"stackChan/utility"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"stackChan/internal/model"
+	"stackChan/internal/service"
+	"stackChan/utility"
 
 	"github.com/gogf/gf/v2/frame/g"
 	"github.com/gogf/gf/v2/net/ghttp"
@@ -26,6 +28,11 @@ import (
 )
 
 const (
+	maxBinaryMessageSize = 2 * 1024 * 1024
+	readWait             = 60 * time.Second
+	pongWait             = 60 * time.Second
+	maxAuthTokenBytes    = 512
+
 	Opus          byte = 0x01
 	Jpeg          byte = 0x02
 	ControlAvatar byte = 0x03
@@ -62,6 +69,7 @@ const (
 )
 
 var (
+	macAddressPattern = regexp.MustCompile(`^(?:[0-9A-Fa-f]{12}|[0-9A-Fa-f]{2}(?::[0-9A-Fa-f]{2}){5})$`)
 	wsUpGrader = websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool { return true },
 		Error: func(w http.ResponseWriter, r *http.Request, status int, reason error) {
@@ -77,6 +85,9 @@ var (
 // GetMac get MAC address from request header
 func GetMac(r *ghttp.Request) (string, error) {
 	if token := r.Header.Get(model.Authorization); token != "" {
+		if len(token) > maxAuthTokenBytes*2 {
+			return "", errors.New("token too long")
+		}
 		decodedToken, err := base64.StdEncoding.DecodeString(token)
 		if err != nil {
 			logger.Errorf(r.Context(), "Error base64 decoding token: %v", err)
@@ -87,24 +98,34 @@ func GetMac(r *ghttp.Request) (string, error) {
 			logger.Errorf(r.Context(), "Error decrypting token: %v", err)
 			return "", err
 		}
-		tokenStr := string(decrypted)
-		parts := strings.Split(tokenStr, "|")
-		if len(parts) < 2 {
-			return "", errors.New("invalid token")
-		}
-		mac := parts[0]
-		tsStr := parts[2]
-		ts, err := strconv.ParseInt(tsStr, 10, 64)
-		if err != nil {
-			return "", errors.New("invalid timestamp")
-		}
-		now := time.Now().Unix()
-		if now-ts > 10 || ts-now > 10 {
-			return "", errors.New("token expired or not yet valid")
-		}
-		return mac, nil
+		return validateAuthToken(string(decrypted), time.Now())
 	}
-	return "", nil
+	return "", errors.New("missing authorization")
+}
+
+func validateAuthToken(tokenStr string, now time.Time) (string, error) {
+	if tokenStr == "" || len(tokenStr) > maxAuthTokenBytes || strings.ContainsRune(tokenStr, '\x00') {
+		return "", errors.New("invalid token")
+	}
+	parts := strings.Split(tokenStr, "|")
+	if len(parts) != 3 {
+		return "", errors.New("invalid token format")
+	}
+	mac := strings.TrimSpace(parts[0])
+	randomPart := strings.TrimSpace(parts[1])
+	tsStr := strings.TrimSpace(parts[2])
+	if !macAddressPattern.MatchString(mac) || randomPart == "" || len(randomPart) > 128 || len(tsStr) != 10 {
+		return "", errors.New("invalid token fields")
+	}
+	ts, err := strconv.ParseInt(tsStr, 10, 64)
+	if err != nil {
+		return "", errors.New("invalid timestamp")
+	}
+	nowUnix := now.Unix()
+	if nowUnix-ts > 10 || ts-nowUnix > 10 {
+		return "", errors.New("token expired or not yet valid")
+	}
+	return mac, nil
 }
 
 // Handler WebSocket handler function
@@ -127,6 +148,11 @@ func Handler(r *ghttp.Request) {
 		r.Response.Write(err.Error())
 		return
 	}
+	ws.SetReadLimit(maxBinaryMessageSize)
+	_ = ws.SetReadDeadline(time.Now().Add(readWait))
+	ws.SetPongHandler(func(string) error {
+		return ws.SetReadDeadline(time.Now().Add(pongWait))
+	})
 
 	if deviceType == "StackChan" {
 		isHave := false
@@ -312,12 +338,16 @@ func parseBinaryMessage(ctx context.Context, msg *[]byte) (byte, int, []byte, bo
 
 	msgType := (*msg)[0]
 	dataLen := int(binary.BigEndian.Uint32((*msg)[1:5]))
-	payload := (*msg)[5 : 5+dataLen]
-
-	if len(*msg)-5 != dataLen {
+	actualLen := len(*msg) - 5
+	if dataLen < 0 || dataLen > maxBinaryMessageSize || dataLen > actualLen {
+		logger.Warningf(ctx, "Invalid binary message length: header=%d actual=%d, message not forwarded", dataLen, actualLen)
+		return 0, 0, nil, false
+	}
+	if actualLen != dataLen {
 		logger.Warningf(ctx, "Length mismatch: header says %d, actual is %d, message not forwarded", dataLen, len(*msg)-5)
 		return 0, 0, nil, false
 	}
+	payload := (*msg)[5 : 5+dataLen]
 
 	return msgType, dataLen, payload, true
 }
