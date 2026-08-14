@@ -222,6 +222,7 @@ func Handler(r *ghttp.Request) {
 				logger.Errorf(ctx, "StackChan Abnormal disconnection: mac=%s, deviceType=%s, Error=%v", mac, deviceType, err)
 				break
 			}
+			_ = ws.SetReadDeadline(time.Now().Add(readWait))
 			client.SetLastTime(time.Now())
 			readStackChanMessage(ctx, client, &messageType, &msg)
 		}
@@ -286,6 +287,7 @@ func Handler(r *ghttp.Request) {
 				logger.Errorf(ctx, "App Abnormal disconnection: mac=%s, deviceType=%s, Error=%v", mac, deviceType, err)
 				break
 			}
+			_ = ws.SetReadDeadline(time.Now().Add(readWait))
 			client.SetLastTime(time.Now())
 			readAppClientMessage(ctx, client, &messageType, &msg)
 		}
