@@ -36,10 +36,13 @@ var (
 		"uploads": defaultUploadDir,
 		"avatar":  "avatar",
 		"post":    "post",
+		"posts":   "post",
 		"dance":   "dance",
+		"moments": "dance",
 		"pano":    "pano",
 		"device":  "device",
 		"app":     "app",
+		"apps":    "app",
 		"tmp":     "tmp",
 	}
 	allowedUploadExt = map[string][]string{

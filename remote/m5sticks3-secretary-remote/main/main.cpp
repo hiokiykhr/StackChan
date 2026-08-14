@@ -513,6 +513,12 @@ ActionResult send_selected_action()
         return result;
     }
 
+    if (!s_time_synced) {
+        result.message = "時刻あわせ中だよ";
+        result.body = "もう少し待ってね";
+        return result;
+    }
+
     cJSON *root = cJSON_CreateObject();
     cJSON *device = cJSON_AddObjectToObject(root, "device");
     cJSON *request = cJSON_AddObjectToObject(root, "request");

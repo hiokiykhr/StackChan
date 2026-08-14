@@ -150,8 +150,10 @@ var (
 				group.Bind(admin.NewV1(), file.NewV1())
 			})
 
-			// Do not use SetServerRoot, globally only provide frontend entry via /web
-			s.SetServerRoot("web/management")
+			// Do not fail API/server smoke tests when the optional built admin console is absent.
+			if stat, statErr := os.Stat("web/management"); statErr == nil && stat.IsDir() {
+				s.SetServerRoot("web/management")
+			}
 
 			s.SetPort(12800)
 			s.Run()
