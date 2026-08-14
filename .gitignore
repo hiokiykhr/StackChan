@@ -1,2 +1,13 @@
 .DS_Store
 .idea/
+
+# ESP-IDF local/generated files
+**/build/
+**/managed_components/
+**/sdkconfig
+
+# Local tooling caches
+.cache/
+**/.cache/
+__pycache__/
+*.pyc

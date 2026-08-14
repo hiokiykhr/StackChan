@@ -1,0 +1,794 @@
+{
+  "happy": {
+    "uniform_size": [
+      174,
+      183
+    ],
+    "frames": [
+      {
+        "index": 1,
+        "source_bbox": [
+          37,
+          67,
+          153,
+          220
+        ],
+        "uniform_crop": [
+          8,
+          52,
+          182,
+          235
+        ],
+        "output_size": [
+          72,
+          76
+        ]
+      },
+      {
+        "index": 2,
+        "source_bbox": [
+          153,
+          67,
+          302,
+          220
+        ],
+        "uniform_crop": [
+          140,
+          52,
+          314,
+          235
+        ],
+        "output_size": [
+          72,
+          76
+        ]
+      },
+      {
+        "index": 3,
+        "source_bbox": [
+          320,
+          67,
+          460,
+          220
+        ],
+        "uniform_crop": [
+          303,
+          52,
+          477,
+          235
+        ],
+        "output_size": [
+          72,
+          76
+        ]
+      },
+      {
+        "index": 4,
+        "source_bbox": [
+          460,
+          67,
+          614,
+          220
+        ],
+        "uniform_crop": [
+          450,
+          52,
+          624,
+          235
+        ],
+        "output_size": [
+          72,
+          76
+        ]
+      },
+      {
+        "index": 5,
+        "source_bbox": [
+          614,
+          67,
+          724,
+          220
+        ],
+        "uniform_crop": [
+          582,
+          52,
+          756,
+          235
+        ],
+        "output_size": [
+          72,
+          76
+        ]
+      },
+      {
+        "index": 6,
+        "source_bbox": [
+          37,
+          271,
+          153,
+          433
+        ],
+        "uniform_crop": [
+          8,
+          260,
+          182,
+          443
+        ],
+        "output_size": [
+          72,
+          76
+        ]
+      },
+      {
+        "index": 7,
+        "source_bbox": [
+          153,
+          271,
+          302,
+          432
+        ],
+        "uniform_crop": [
+          140,
+          260,
+          314,
+          443
+        ],
+        "output_size": [
+          72,
+          76
+        ]
+      },
+      {
+        "index": 8,
+        "source_bbox": [
+          320,
+          270,
+          442,
+          433
+        ],
+        "uniform_crop": [
+          294,
+          260,
+          468,
+          443
+        ],
+        "output_size": [
+          72,
+          76
+        ]
+      },
+      {
+        "index": 9,
+        "source_bbox": [
+          460,
+          270,
+          614,
+          433
+        ],
+        "uniform_crop": [
+          450,
+          260,
+          624,
+          443
+        ],
+        "output_size": [
+          72,
+          76
+        ]
+      },
+      {
+        "index": 10,
+        "source_bbox": [
+          614,
+          271,
+          724,
+          433
+        ],
+        "uniform_crop": [
+          582,
+          260,
+          756,
+          443
+        ],
+        "output_size": [
+          72,
+          76
+        ]
+      }
+    ]
+  },
+  "crying": {
+    "uniform_size": [
+      174,
+      182
+    ],
+    "frames": [
+      {
+        "index": 1,
+        "source_bbox": [
+          803,
+          67,
+          921,
+          220
+        ],
+        "uniform_crop": [
+          775,
+          52,
+          949,
+          234
+        ],
+        "output_size": [
+          73,
+          76
+        ]
+      },
+      {
+        "index": 2,
+        "source_bbox": [
+          921,
+          67,
+          1067,
+          220
+        ],
+        "uniform_crop": [
+          907,
+          52,
+          1081,
+          234
+        ],
+        "output_size": [
+          73,
+          76
+        ]
+      },
+      {
+        "index": 3,
+        "source_bbox": [
+          1087,
+          67,
+          1209,
+          220
+        ],
+        "uniform_crop": [
+          1061,
+          52,
+          1235,
+          234
+        ],
+        "output_size": [
+          73,
+          76
+        ]
+      },
+      {
+        "index": 4,
+        "source_bbox": [
+          1228,
+          67,
+          1382,
+          220
+        ],
+        "uniform_crop": [
+          1218,
+          52,
+          1392,
+          234
+        ],
+        "output_size": [
+          73,
+          76
+        ]
+      },
+      {
+        "index": 5,
+        "source_bbox": [
+          1382,
+          67,
+          1493,
+          220
+        ],
+        "uniform_crop": [
+          1350,
+          52,
+          1524,
+          234
+        ],
+        "output_size": [
+          73,
+          76
+        ]
+      },
+      {
+        "index": 6,
+        "source_bbox": [
+          803,
+          271,
+          921,
+          433
+        ],
+        "uniform_crop": [
+          775,
+          261,
+          949,
+          443
+        ],
+        "output_size": [
+          73,
+          76
+        ]
+      },
+      {
+        "index": 7,
+        "source_bbox": [
+          921,
+          271,
+          1067,
+          432
+        ],
+        "uniform_crop": [
+          907,
+          260,
+          1081,
+          442
+        ],
+        "output_size": [
+          73,
+          76
+        ]
+      },
+      {
+        "index": 8,
+        "source_bbox": [
+          1087,
+          271,
+          1209,
+          433
+        ],
+        "uniform_crop": [
+          1061,
+          261,
+          1235,
+          443
+        ],
+        "output_size": [
+          73,
+          76
+        ]
+      },
+      {
+        "index": 9,
+        "source_bbox": [
+          1229,
+          271,
+          1382,
+          433
+        ],
+        "uniform_crop": [
+          1218,
+          261,
+          1392,
+          443
+        ],
+        "output_size": [
+          73,
+          76
+        ]
+      },
+      {
+        "index": 10,
+        "source_bbox": [
+          1382,
+          271,
+          1493,
+          433
+        ],
+        "uniform_crop": [
+          1350,
+          261,
+          1524,
+          443
+        ],
+        "output_size": [
+          73,
+          76
+        ]
+      }
+    ]
+  },
+  "angry": {
+    "uniform_size": [
+      174,
+      184
+    ],
+    "frames": [
+      {
+        "index": 1,
+        "source_bbox": [
+          37,
+          573,
+          153,
+          732
+        ],
+        "uniform_crop": [
+          8,
+          560,
+          182,
+          744
+        ],
+        "output_size": [
+          72,
+          76
+        ]
+      },
+      {
+        "index": 2,
+        "source_bbox": [
+          153,
+          573,
+          302,
+          732
+        ],
+        "uniform_crop": [
+          140,
+          560,
+          314,
+          744
+        ],
+        "output_size": [
+          72,
+          76
+        ]
+      },
+      {
+        "index": 3,
+        "source_bbox": [
+          320,
+          573,
+          442,
+          732
+        ],
+        "uniform_crop": [
+          294,
+          560,
+          468,
+          744
+        ],
+        "output_size": [
+          72,
+          76
+        ]
+      },
+      {
+        "index": 4,
+        "source_bbox": [
+          460,
+          573,
+          614,
+          732
+        ],
+        "uniform_crop": [
+          450,
+          560,
+          624,
+          744
+        ],
+        "output_size": [
+          72,
+          76
+        ]
+      },
+      {
+        "index": 5,
+        "source_bbox": [
+          614,
+          573,
+          724,
+          732
+        ],
+        "uniform_crop": [
+          582,
+          560,
+          756,
+          744
+        ],
+        "output_size": [
+          72,
+          76
+        ]
+      },
+      {
+        "index": 6,
+        "source_bbox": [
+          37,
+          781,
+          153,
+          944
+        ],
+        "uniform_crop": [
+          8,
+          770,
+          182,
+          954
+        ],
+        "output_size": [
+          72,
+          76
+        ]
+      },
+      {
+        "index": 7,
+        "source_bbox": [
+          153,
+          781,
+          302,
+          943
+        ],
+        "uniform_crop": [
+          140,
+          770,
+          314,
+          954
+        ],
+        "output_size": [
+          72,
+          76
+        ]
+      },
+      {
+        "index": 8,
+        "source_bbox": [
+          320,
+          780,
+          442,
+          944
+        ],
+        "uniform_crop": [
+          294,
+          770,
+          468,
+          954
+        ],
+        "output_size": [
+          72,
+          76
+        ]
+      },
+      {
+        "index": 9,
+        "source_bbox": [
+          460,
+          781,
+          614,
+          944
+        ],
+        "uniform_crop": [
+          450,
+          770,
+          624,
+          954
+        ],
+        "output_size": [
+          72,
+          76
+        ]
+      },
+      {
+        "index": 10,
+        "source_bbox": [
+          614,
+          781,
+          724,
+          944
+        ],
+        "uniform_crop": [
+          582,
+          770,
+          756,
+          954
+        ],
+        "output_size": [
+          72,
+          76
+        ]
+      }
+    ]
+  },
+  "surprised": {
+    "uniform_size": [
+      174,
+      183
+    ],
+    "frames": [
+      {
+        "index": 1,
+        "source_bbox": [
+          793,
+          572,
+          921,
+          732
+        ],
+        "uniform_crop": [
+          770,
+          560,
+          944,
+          743
+        ],
+        "output_size": [
+          72,
+          76
+        ]
+      },
+      {
+        "index": 2,
+        "source_bbox": [
+          921,
+          572,
+          1067,
+          732
+        ],
+        "uniform_crop": [
+          907,
+          560,
+          1081,
+          743
+        ],
+        "output_size": [
+          72,
+          76
+        ]
+      },
+      {
+        "index": 3,
+        "source_bbox": [
+          1076,
+          572,
+          1228,
+          732
+        ],
+        "uniform_crop": [
+          1065,
+          560,
+          1239,
+          743
+        ],
+        "output_size": [
+          72,
+          76
+        ]
+      },
+      {
+        "index": 4,
+        "source_bbox": [
+          1228,
+          572,
+          1382,
+          732
+        ],
+        "uniform_crop": [
+          1218,
+          560,
+          1392,
+          743
+        ],
+        "output_size": [
+          72,
+          76
+        ]
+      },
+      {
+        "index": 5,
+        "source_bbox": [
+          1382,
+          572,
+          1493,
+          732
+        ],
+        "uniform_crop": [
+          1350,
+          560,
+          1524,
+          743
+        ],
+        "output_size": [
+          72,
+          76
+        ]
+      },
+      {
+        "index": 6,
+        "source_bbox": [
+          803,
+          781,
+          921,
+          944
+        ],
+        "uniform_crop": [
+          775,
+          771,
+          949,
+          954
+        ],
+        "output_size": [
+          72,
+          76
+        ]
+      },
+      {
+        "index": 7,
+        "source_bbox": [
+          921,
+          781,
+          1067,
+          943
+        ],
+        "uniform_crop": [
+          907,
+          770,
+          1081,
+          953
+        ],
+        "output_size": [
+          72,
+          76
+        ]
+      },
+      {
+        "index": 8,
+        "source_bbox": [
+          1087,
+          781,
+          1209,
+          944
+        ],
+        "uniform_crop": [
+          1061,
+          771,
+          1235,
+          954
+        ],
+        "output_size": [
+          72,
+          76
+        ]
+      },
+      {
+        "index": 9,
+        "source_bbox": [
+          1229,
+          781,
+          1382,
+          944
+        ],
+        "uniform_crop": [
+          1218,
+          771,
+          1392,
+          954
+        ],
+        "output_size": [
+          72,
+          76
+        ]
+      },
+      {
+        "index": 10,
+        "source_bbox": [
+          1382,
+          781,
+          1493,
+          944
+        ],
+        "uniform_crop": [
+          1350,
+          771,
+          1524,
+          954
+        ],
+        "output_size": [
+          72,
+          76
+        ]
+      }
+    ]
+  }
+}

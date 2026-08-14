@@ -181,6 +181,12 @@ bash -lc 'source /Users/p00939/esp-idf-v5.5.4/export.sh >/dev/null && idf.py -p 
   - 想定ユースケース: StackChan本体カメラの見えている範囲を手元で確認する。
   - 検討観点: 映像転送方式、UI/操作系、給電/バッテリー、StackChan本体との通信方式、屋内/屋外運用時のレイテンシと安定性。
 
+- 余った M5StickS3 を `Hermes Hardware Buddy` として育てる。
+  - 狙い: Claude Hardware Buddy 的に、Hermes をすぐ呼べて・状態が見えて・相棒感がある物理ツールにする。
+  - フェーズ案: Phase 1 は秘書リモコン/quick action 端末、Phase 2 は状態表示/dash、Phase 3 は表情/一言/音声を含む buddy persona 化。
+  - 初期 action 候補: `secretary.memo.capture`, `secretary.reminder.quick_add`, `secretary.task.next`, `secretary.mode.home`。
+  - 関連ドキュメント: `docs/m5sticks3-secretary-remote-roadmap.md`, `docs/m5sticks3-secretary-remote-phase1-spec.md`, `docs/m5sticks3-hermes-hardware-buddy.md`.
+
 ## 注意事項
 
 - `lv_font_montserrat_24` は日本語や `¥` を表示できないため、実機 UI 文言は ASCII に寄せる。

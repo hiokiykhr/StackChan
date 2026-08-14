@@ -1,0 +1,28 @@
+menu "Hermes Hardware Buddy Config"
+
+config SECRETARY_WIFI_SSID
+    string "Wi-Fi SSID"
+    default ""
+
+config SECRETARY_WIFI_PASSWORD
+    string "Wi-Fi password"
+    default ""
+
+config SECRETARY_WEBHOOK_URL
+    string "Webhook URL"
+    default ""
+
+config SECRETARY_DEVICE_ID
+    string "Device ID"
+    default "m5sticks3-hermes-hardware-buddy"
+
+config SECRETARY_FIRMWARE_LABEL
+    string "Firmware label"
+    default "hardware-buddy-phase1"
+
+config SECRETARY_HTTP_TIMEOUT_MS
+    int "HTTP timeout (ms)"
+    default 8000
+    range 1000 30000
+
+endmenu
